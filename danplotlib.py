@@ -4,7 +4,6 @@ Module for convenient plotting using matplotlib.pyplot
 from functools import wraps, partial, update_wrapper
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-import gc_colors  #Update color palette
 
 
 #Define new plot functions which also plot minorticks
@@ -23,7 +22,7 @@ errorbar_temp = minorticks_decorate(plt.errorbar)
 hist_temp = minorticks_decorate(plt.hist)
 
 #Change default linewidth for histograms to global default
-hist = partial(hist_temp, linewidth=plt.rcParams["lines.linewidth"])
+hist = partial(hist_temp, linewidth=plt.rcParams["lines.linewidth"], histtype="step")
 update_wrapper(hist, hist_temp)
 
 #Change default appearance for errorbar
