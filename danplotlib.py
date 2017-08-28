@@ -37,10 +37,6 @@ ylabel = partial(plt.ylabel, ha="right", y=1)
 update_wrapper(ylabel,plt.ylabel)
 
 
-#Do the same things for the axes-plotting commands
-#Define own Axes class
-class Axes(mpl.axes.Axes):
-    plot = minorticks_decorate(mpl.axes.Axes.plot)
 
 def trafo_subplots_axes(func):
     @wraps(func)
@@ -63,6 +59,18 @@ def trafo_subplots_axes(func):
             axis.set_ylabel = partial(set_ylabel_temp, ha="right", y=1)
             update_wrapper(axis.set_ylabel, set_ylabel_temp)
 
+            #Set default linewidth and hist type for histogram plots
+            axis_hist_temp = axis.hist
+            axis.hist = partial(axis_hist_temp, linewidth=plt.rcParams["lines.linewidth"],
+                                histtype="step")
+            update_wrapper(axis.hist, axis_hist_temp)
+
+
+            #Set default errorbar format and ms
+            axis_errorbar_temp = axis.errorbar
+            axis.errorbar = partial(axis_errorbar_temp, fmt=".", ms=0)
+            update_wrapper(axis.errorbar, axis_errorbar_temp)
+
         if to_list: #Restore old behaviour
             ax = ax[0]
 
@@ -78,6 +86,12 @@ subplots = trafo_subplots_axes(plt.subplots)
 #=================================================================
 # Add additional functionalities =================================
 #=================================================================
+def div0( a, b ):
+    """ ignore / 0, div0( [-1, 0, 1], 0 ) -> [0, 0, 0] """
+    with np.errstate(divide='ignore', invalid='ignore'):
+        c = np.true_divide( a, b )
+        c[ ~ np.isfinite( c )] = 0  # -inf inf NaN
+    return c
 
 def is_outlier(points, thresh=3.5):
     """
@@ -108,7 +122,7 @@ def is_outlier(points, thresh=3.5):
     diff = np.sqrt(diff)
     med_abs_deviation = np.median(diff)
 
-    modified_z_score = 0.6745 * diff / med_abs_deviation
+    modified_z_score = div0(0.6745 * diff, med_abs_deviation)
 
     return modified_z_score > thresh
 
