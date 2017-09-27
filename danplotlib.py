@@ -1,6 +1,7 @@
 """
 Module for convenient plotting using matplotlib.pyplot
 """
+from __future__ import division, print_function
 from functools import wraps, partial, update_wrapper
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -131,6 +132,7 @@ def autoscale_nooutliers(axis=None, direction="y", extend_view=0.1, thresh=3.5):
     if not axis:
         axis=plt.gca()
 
+
     if direction not in ["x", "y", "both"]:
         raise ValueError("direction must be either 'x', 'y' or 'both'!")
     elif direction == "both":
@@ -138,15 +140,49 @@ def autoscale_nooutliers(axis=None, direction="y", extend_view=0.1, thresh=3.5):
     else:
         direction = [ direction ]
 
+
     #Loop through directions
     for xory in direction:
         low = np.nan
         up = np.nan
         #Loop through line objects of axis
         for line in axis.lines:
-            data = line.get_xdata() if xory == "x" else line.get_ydata()
-            if not isinstance(data, list): #Ignore axvline, axhline
-                data_filtered = data[~is_outlier(data, thresh)]
+            data_x = line.get_xdata()
+            data_y = line.get_ydata()
+
+            #In case of numpy datetime64 -> convert to datetime.datetime
+            if isinstance(data_x[0], np.datetime64):
+                data_x = data_x.astype("M8[ms]").astype("O")
+            if isinstance(data_y[0], np.datetime64):
+                data_y = data_y.astype("M8[ms]").astype("O")
+
+            #Convert to float in case of datetime.datetime
+            try:
+                data_x = mpl.dates.date2num(data_x)
+            except AttributeError:
+                data_x = data_x
+
+            try:
+                data_y = mpl.dates.date2num(data_y)
+            except AttributeError:
+                data_y = data_y
+
+
+            data = data_x if xory == "x" else data_y
+            #Ignore axvline, axhline
+            if not isinstance(data, list):
+                #Only consider data in current view (e.g. if did xlim before)
+                #X-direction
+                xlims = axis.get_xlim()
+                viewmask = (data_x >= xlims[0]) & (data_x <= xlims[1])
+                #Y-direction
+                ylims = axis.get_ylim()
+                viewmask &= (data_y >= ylims[0]) & (data_y <= ylims[1])
+
+                data_view = data[viewmask]
+
+                #Remove outliers
+                data_filtered = data_view[~is_outlier(data_view, thresh)]
                 up = np.nanmax( [np.nanmax(data_filtered), up] )
                 low = np.nanmin( [np.nanmin(data_filtered), low] )
 
