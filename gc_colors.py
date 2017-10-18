@@ -28,9 +28,11 @@ else:
 
 #Update default color palette
 def update_colorcycle():
-    mpl.rcParams["axes.prop_cycle"] = cycler.cycler(color=["gcblue", "gcred", "gcgreen", "gcorange",
-                                                           "gccyan", "gcmagenta", "gcbrown", "gcdarkgrey"])
+    colorcycle = ["gcblue", "gcred", "gcgreen", "gcorange", "gccyan",
+                  "gcmagenta", "gcbrown", "gcdarkgrey"]
+    mpl.rcParams["axes.prop_cycle"] = cycler.cycler(color=colorcycle)
+    print "Updated matplotlib colorcycle to {}".format(colorcycle)
 
 def show():
     #Function to print the GC colors
-    pprint.pprint(gc_colors)    
+    pprint.pprint(gc_colors)
