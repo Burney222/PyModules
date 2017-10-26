@@ -2,6 +2,7 @@ import matplotlib as mpl
 import pprint
 import cycler  #color cycler
 
+#All colors
 gc_colors = { u"gcred" : u"#BE1818",
               u"gcorange" : u"#FF9900",
               u"gclime" : u"#9DCE09",
@@ -18,6 +19,10 @@ gc_colors = { u"gcred" : u"#BE1818",
               u"gcmagenta" : u"#9467bd",
               u"gcbrown" : u"#8c564b"}
 
+#Colorcycle
+colorcycle = ["gcblue", "gcred", "gcgreen", "gcorange", "gccyan",
+              "gcmagenta", "gcbrown", "gcdarkgrey"]
+
 
 #Patch matplotlib color palette
 
@@ -28,10 +33,7 @@ else:
 
 #Update default color palette
 def update_colorcycle():
-    colorcycle = ["gcblue", "gcred", "gcgreen", "gcorange", "gccyan",
-                  "gcmagenta", "gcbrown", "gcdarkgrey"]
     mpl.rcParams["axes.prop_cycle"] = cycler.cycler(color=colorcycle)
-    print "Updated matplotlib colorcycle to {}".format(colorcycle)
 
 def show():
     #Function to print the GC colors
