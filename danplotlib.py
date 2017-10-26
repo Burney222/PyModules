@@ -182,7 +182,10 @@ def autoscale_nooutliers(axis=None, direction="y", extend_view=0.1, thresh=3.5):
                 data_view = data[viewmask]
 
                 #Remove outliers
-                data_filtered = data_view[~is_outlier(data_view, thresh)]
+                if thresh == 0: #Do not remove outliers
+                    data_filtered = data_view
+                else:
+                    data_filtered = data_view[~is_outlier(data_view, thresh)]
                 up = np.nanmax( [np.nanmax(data_filtered), up] )
                 low = np.nanmin( [np.nanmin(data_filtered), low] )
 
