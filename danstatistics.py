@@ -1,9 +1,11 @@
+from __future__ import division
 import numpy as np
 import ROOT
 
-def calc_TEfficiency(nPassed, nTotal):
-    """Calculate efficiency using TEfficiency class from ROOT. nPassed and nTotal can be either a scalar each,
-    or lists/arrays/... with the same length, where each entry correspond to a nPassed or nTotal respectively.
+def calc_TEfficiency(nPassed, nTotal, TEff = True):
+    """Calculate efficiency using TEfficiency class from ROOT (default) or simple method.
+    nPassed and nTotal can be either a scalar each, or lists/arrays/... with the same length,
+    where each entry correspond to a nPassed or nTotal respectively.
     Returns (eff, eff_errlow, eff_errup)"""
 
     #Check for arrays input
@@ -18,19 +20,28 @@ def calc_TEfficiency(nPassed, nTotal):
         nPassed = [ nPassed ]
         nTotal = [ nTotal ]
 
-    #Create TEfficiency object and fill it
-    HistPassed = ROOT.TH1D("Passed", "Passed", length, 0, length)
-    HistTotal = ROOT.TH1D("Total", "Total", length, 0, length)
+    if(TEff):
+        #Create TEfficiency object and fill it
+        HistPassed = ROOT.TH1D("Passed", "Passed", length, 0, length)
+        HistTotal = ROOT.TH1D("Total", "Total", length, 0, length)
 
-    for i in range(length):
-        HistTotal.SetBinContent(i+1, nTotal[i])
-        HistPassed.SetBinContent(i+1, nPassed[i])
+        for i in range(length):
+            HistTotal.SetBinContent(i+1, nTotal[i])
+            HistPassed.SetBinContent(i+1, nPassed[i])
 
-    TEff = ROOT.TEfficiency(HistPassed, HistTotal)
+        TEff = ROOT.TEfficiency(HistPassed, HistTotal)
+        TEff.SetUseWeightedEvents(False) #Otherwise errors are not computed..
 
-    eff = np.asarray([ TEff.GetEfficiency(i+1) for i in range(length) ])
-    eff_errlow = np.asarray([ TEff.GetEfficiencyErrorLow(i+1) for i in range(length) ])
-    eff_errup = np.asarray([ TEff.GetEfficiencyErrorUp(i+1) for i in range(length) ])
+        eff = np.asarray([ TEff.GetEfficiency(i+1) for i in range(length) ])
+        eff_errlow = np.asarray([ TEff.GetEfficiencyErrorLow(i+1) for i in range(length) ])
+        eff_errup = np.asarray([ TEff.GetEfficiencyErrorUp(i+1) for i in range(length) ])
+
+    else:
+        nPassed = np.asarray(nPassed, dtype=np.float64)
+        nTotal = np.asarray(nTotal, dtype=np.float64)
+        eff = nPassed/nTotal
+        eff_errlow = np.sqrt(eff*(1.-eff)/nTotal)
+        eff_errup = eff_errlow
 
     if bScalar:
         #Restore scalar behaviour
